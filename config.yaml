@@ -1,0 +1,64 @@
+# 通达信选股程序配置文件
+
+# 通达信根目录
+tdx_root: "D:\\App\\new_tdx64"
+
+# xg_below240w 选股程序配置
+xg_below240w:
+  # 源板块代码
+  source_block: "AAA"
+
+  # 目标板块代码
+  target_block: "X01"
+
+  # 目标板块名称
+  target_block_name: "X01_低于五年周线"
+
+# xg_small_goodfund 选股程序配置
+xg_small_goodfund:
+  # 源板块代码
+  source_block: "X01"
+  
+  # 目标板块代码
+  target_block: "X02"
+  
+  # 目标板块名称
+  target_block_name: "X02_微盘股且基本面良好"
+
+# xg_buy_small_goodfund 选股程序配置
+xg_buy_small_goodfund:
+  # 公式配置列表
+  formulas:
+    - formula_name: "B00_KDJ5W"
+      source_block: "X02"
+      target_block: "B00"
+      target_block_name: "B00_KDJ5W"
+      stock_period: "1w"
+    
+    - formula_name: "B01_KDJ_DJC"
+      source_block: "X02"
+      target_block: "B01"
+      target_block_name: "B01_KDJ_低金叉"
+      stock_period: "1d"
+    
+    - formula_name: "B02_KDJ_GJC"
+      source_block: "X02"
+      target_block: "B02"
+      target_block_name: "B02_KDJ_高金叉"
+      stock_period: "1d"
+
+# xg_buy_aaa_kdj 选股程序配置
+xg_buy_aaa_kdj:
+  # 公式配置列表
+  formulas:
+    - formula_name: "B01_KDJ_DJC"
+      source_block: "AAA"
+      target_block: "BA1"
+      target_block_name: "BA1_KDJ_低金叉"
+      stock_period: "1d"
+    
+    - formula_name: "B02_KDJ_GJC"
+      source_block: "AAA"
+      target_block: "BA2"
+      target_block_name: "BA2_KDJ_高金叉"
+      stock_period: "1d"
