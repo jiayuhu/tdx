@@ -1,13 +1,14 @@
 [project]
 name = "tdx"
 version = "0.1.0"
-description = "通达信选股程序"
+description = "通达信选股系统"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "backtrader>=1.9.78.123",
     "numpy>=2.4.2",
     "pandas>=3.0.1",
-    "pyyaml>=6.0",
     "vectorbt>=0.28.2",
+    "flask>=3.0.0",
+    "pyyaml>=6.0",
 ]

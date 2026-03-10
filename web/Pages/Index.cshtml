@@ -1,0 +1,414 @@
+﻿@page
+@{
+    ViewData["Title"] = "首页";
+    ViewData["ActivePage"] = "Home";
+}
+
+<div class="home-container">
+    <!-- 程序介绍 -->
+    <div class="intro-card">
+        <div class="intro-header">
+            <i class="bi bi-graph-up-arrow"></i>
+            <h1>通达信选股系统</h1>
+            <p class="subtitle">数据分析平台</p>
+        </div>
+        
+        <div class="intro-content">
+            <h3><i class="bi bi-info-circle"></i> 系统简介</h3>
+            <p>
+                本系统基于通达信 TdxQuant API 开发，实现自动化选股和板块管理功能。
+                系统从通达信获取实时板块数据，通过数据库记录历史数据并计算增量，
+                最终将选股结果展示在 Web 界面中。
+            </p>
+            <p>
+                <strong>架构优势：</strong>
+                本系统采用本地 Python 程序调用通达信金融终端内的用户自定义公式实现选股。
+                这种设计既保证了核心选股算法的安全性（公式在通达信终端内部执行，不会泄露），
+                又能够充分利用 Python 程序的灵活性（数据处理、自动化流程、Web 展示等），
+                实现了安全性与灵活性的完美结合。
+            </p>
+
+            <h3><i class="bi bi-gear"></i> 主要功能</h3>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <i class="bi bi-database"></i>
+                    <h4>数据管理</h4>
+                    <p>从通达信获取板块数据，保存到 SQLite 数据库，滚动保留最近 10 个工作日的数据</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <h4>增量计算</h4>
+                    <p>自动比较相邻两天的数据，计算新增和减少的股票，记录到增量表</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+                    <h4>板块管理</h4>
+                    <p>支持长线和短线选股板块，自动更新目标板块成分股</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-currency-dollar"></i>
+                    <h4>买点计算</h4>
+                    <p>自动计算买点价格（EMA(C,2)），记录股票入选日期</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 数据板块导航 -->
+    <div class="section-title">
+        <h3><i class="bi bi-folder"></i> 数据板块</h3>
+    </div>
+    
+    <div class="data-cards">
+        <div class="data-section">
+            <h4><i class="bi bi-trend-up"></i> 长线选股</h4>
+            <div class="card-grid">
+                <a href="/Index/B01" class="data-card">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>B01</h5>
+                        <p class="desc">长线日报 - 优质小盘股</p>
+                        <p class="sub-desc">低档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/B01" class="data-card delta">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-plus"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>B01_DELTA</h5>
+                        <p class="desc">长线新增 - 优质小盘股</p>
+                        <p class="sub-desc">低档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/B02" class="data-card">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>B02</h5>
+                        <p class="desc">长线日报 - 优质小盘股</p>
+                        <p class="sub-desc">高档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/B02" class="data-card delta">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-plus"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>B02_DELTA</h5>
+                        <p class="desc">长线新增 - 优质小盘股</p>
+                        <p class="sub-desc">高档金叉</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <h4><i class="bi bi-lightning"></i> 短线选股</h4>
+            <div class="card-grid">
+                <a href="/Index/BA1" class="data-card">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>BA1</h5>
+                        <p class="desc">短线日报 - AAA 选股池</p>
+                        <p class="sub-desc">低档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/BA1" class="data-card delta">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-plus"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>BA1_DELTA</h5>
+                        <p class="desc">短线新增 - AAA 选股池</p>
+                        <p class="sub-desc">低档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/BA2" class="data-card">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>BA2</h5>
+                        <p class="desc">短线日报 - AAA 选股池</p>
+                        <p class="sub-desc">高档金叉</p>
+                    </div>
+                </a>
+                <a href="/Index/BA2" class="data-card delta">
+                    <div class="card-icon">
+                        <i class="bi bi-file-earmark-plus"></i>
+                    </div>
+                    <div class="card-info">
+                        <h5>BA2_DELTA</h5>
+                        <p class="desc">短线新增 - AAA 选股池</p>
+                        <p class="sub-desc">高档金叉</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 技术栈 -->
+    <div class="tech-stack">
+        <h3><i class="bi bi-palette"></i> 技术栈</h3>
+        <div class="tech-items">
+            <span class="tech-badge">ASP.NET Core 10</span>
+            <span class="tech-badge">Razor Pages</span>
+            <span class="tech-badge">Entity Framework Core</span>
+            <span class="tech-badge">SQLite</span>
+            <span class="tech-badge">Bootstrap 5</span>
+            <span class="tech-badge">Python</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .home-container {
+        max-width: 1200px;
+    }
+    
+    .intro-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .intro-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .intro-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .intro-header h1 {
+        margin: 0;
+        font-size: 2rem;
+    }
+    
+    .intro-header .subtitle {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .intro-content {
+        padding: 1.5rem;
+    }
+    
+    .intro-content h3 {
+        color: #212529;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .intro-content h3 i {
+        color: #0d6efd;
+    }
+    
+    .intro-content p {
+        color: #495057;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .intro-content p strong {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .feature-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 3px solid #0d6efd;
+    }
+    
+    .feature-item i {
+        font-size: 1.5rem;
+        color: #0d6efd;
+        margin-bottom: 0.5rem;
+    }
+    
+    .feature-item h4 {
+        color: #212529;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+    }
+    
+    .feature-item p {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+    
+    .section-title {
+        margin: 1.5rem 0 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .section-title h3 {
+        margin: 0;
+        color: #212529;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-title h3 i {
+        color: #0d6efd;
+    }
+    
+    .data-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .data-section h4 {
+        color: #212529;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .data-section h4 i {
+        color: #0d6efd;
+    }
+    
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+    }
+    
+    .data-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        height: 200px;
+    }
+    
+    .data-card:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .data-card.delta {
+        background: #f8f9fa;
+    }
+    
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .card-icon i {
+        color: white;
+        font-size: 2rem;
+    }
+    
+    .card-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .card-info h5 {
+        margin: 0 0 0.5rem;
+        color: #212529;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .card-info .desc {
+        margin: 0.25rem 0;
+        color: #6c757d;
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .card-info .sub-desc {
+        margin: 0.5rem 0 0;
+        color: #0d6efd;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .tech-stack {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        margin-top: 1.5rem;
+    }
+    
+    .tech-stack h3 {
+        color: #212529;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .tech-stack h3 i {
+        color: #0d6efd;
+    }
+    
+    .tech-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .tech-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.4rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>

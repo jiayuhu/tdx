@@ -3,62 +3,82 @@
 # 通达信根目录
 tdx_root: "D:\\App\\new_tdx64"
 
-# xg_below240w 选股程序配置
-xg_below240w:
-  # 源板块代码
-  source_block: "AAA"
+# TQ 板块操作延时配置（毫秒）
+# 通达信 TQ API 对板块操作后需要一定时间同步数据
+# 建议在两次板块操作之间延时 100-500 毫秒
+# 如果看到"获取板块成分股错误"的日志，可以增加延时时间
+tq_delay_ms: 200
 
-  # 目标板块代码
-  target_block: "X01"
+# 选股程序执行列表（按顺序执行）
+xg_programs:
+  - name: "below240w"
+    desc: "低于五年周线 (AAA → X01)"
+    type: "single"
+    source_block: "AAA"
+    target_block: "X01"
+    target_block_name: "X01_低于五年周线"
+    formula_name: "X01_BELOW240W"
+    stock_period: "1w"
 
-  # 目标板块名称
-  target_block_name: "X01_低于五年周线"
+  - name: "small_goodfund"
+    desc: "微盘股基本面选股 (X01 → X02)"
+    type: "multi"
+    source_block: "X01"
+    target_block: "X02"
+    target_block_name: "X02_微盘股且基本面良好"
+    formulas:
+      - "X02_LTSZ100Y"
+      - "X03_MG_GOOD"
+      - "X04_MG_GR_Q4"
+      - "X05_GX_BT0"
 
-# xg_small_goodfund 选股程序配置
-xg_small_goodfund:
-  # 源板块代码
-  source_block: "X01"
-  
-  # 目标板块代码
-  target_block: "X02"
-  
-  # 目标板块名称
-  target_block_name: "X02_微盘股且基本面良好"
+  - name: "buy_kdj_small"
+    desc: "KDJ 买入信号 (X02 → B00/B01/B02)"
+    type: "parallel"
+    source_block: "X02"
+    formulas:
+      - formula_name: "B00_KDJ5W"
+        target_block: "B00"
+        target_block_name: "B00_KDJ5W"
+        stock_period: "1w"
+      - formula_name: "B01_KDJ_DJC"
+        target_block: "B01"
+        target_block_name: "B01_KDJ_低金叉"
+        stock_period: "1d"
+      - formula_name: "B02_KDJ_GJC"
+        target_block: "B02"
+        target_block_name: "B02_KDJ_高金叉"
+        stock_period: "1d"
 
-# xg_buy_small_goodfund 选股程序配置
-xg_buy_small_goodfund:
-  # 公式配置列表
-  formulas:
-    - formula_name: "B00_KDJ5W"
-      source_block: "X02"
-      target_block: "B00"
-      target_block_name: "B00_KDJ5W"
-      stock_period: "1w"
-    
-    - formula_name: "B01_KDJ_DJC"
-      source_block: "X02"
-      target_block: "B01"
-      target_block_name: "B01_KDJ_低金叉"
-      stock_period: "1d"
-    
-    - formula_name: "B02_KDJ_GJC"
-      source_block: "X02"
-      target_block: "B02"
-      target_block_name: "B02_KDJ_高金叉"
-      stock_period: "1d"
+  - name: "buy_kdj_aaa"
+    desc: "AAA 板块 KDJ (AAA → BA1/BA2)"
+    type: "parallel"
+    source_block: "AAA"
+    formulas:
+      - formula_name: "B01_KDJ_DJC"
+        target_block: "BA1"
+        target_block_name: "BA1_KDJ_低金叉"
+        stock_period: "1d"
+      - formula_name: "B02_KDJ_GJC"
+        target_block: "BA2"
+        target_block_name: "BA2_KDJ_高金叉"
+        stock_period: "1d"
 
-# xg_buy_aaa_kdj 选股程序配置
-xg_buy_aaa_kdj:
-  # 公式配置列表
-  formulas:
-    - formula_name: "B01_KDJ_DJC"
-      source_block: "AAA"
-      target_block: "BA1"
-      target_block_name: "BA1_KDJ_低金叉"
-      stock_period: "1d"
-    
-    - formula_name: "B02_KDJ_GJC"
-      source_block: "AAA"
-      target_block: "BA2"
-      target_block_name: "BA2_KDJ_高金叉"
-      stock_period: "1d"
+  - name: "db_update"
+    desc: "数据库和板块更新 (记录增量股票)"
+    type: "db_update"
+    long_term_blocks:
+      - code: "B01"
+        target_block: "B01_delta"
+        target_block_name: "B01_DELTA_长线新增_低档金叉"
+      - code: "B02"
+        target_block: "B02_delta"
+        target_block_name: "B02_DELTA_长线新增_高档金叉"
+    short_term_blocks:
+      - code: "BA1"
+        target_block: "BA1_delta"
+        target_block_name: "BA1_DELTA_短线新增_低档金叉"
+      - code: "BA2"
+        target_block: "BA2_delta"
+        target_block_name: "BA2_DELTA_短线新增_高档金叉"
+    keep_days: 10
