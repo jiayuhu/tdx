@@ -16,12 +16,22 @@
     result = db.process_block(block_config, block_manager, keep_days)
 """
 
+import re
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from base import EMA_LONG_WEIGHT, EMA_SHORT_WEIGHT, get_tq
+
+_TABLE_NAME_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+
+def _safe_table_name(name: str) -> str:
+    """校验并返回安全的表名，不合法则抛出 ValueError"""
+    if not _TABLE_NAME_RE.match(name):
+        raise ValueError(f"非法表名: {name!r}")
+    return name
 
 
 class StockDatabase:
@@ -38,7 +48,12 @@ class StockDatabase:
 
         for block_config in blocks:
             block_code = block_config.get('code')
-            table_name = f"{block_code.lower()}"
+            try:
+                table_name = _safe_table_name(block_code.lower())
+                delta_table = _safe_table_name(f"{block_code.lower()}_delta")
+            except ValueError as e:
+                print(f"跳过板块 '{block_code}'：{e}")
+                continue
 
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS {table_name} (
@@ -51,7 +66,6 @@ class StockDatabase:
             """)
             cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_date ON {table_name}(record_date)")
 
-            delta_table = f"{block_code.lower()}_delta"
             cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS {delta_table} (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,6 +80,16 @@ class StockDatabase:
             """)
             cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{delta_table}_date ON {delta_table}(record_date)")
 
+            # 迁移旧数据：将 datetime ISO 格式的 record_date 标准化为纯日期 (YYYY-MM-DD)
+            for tbl in (table_name, delta_table):
+                cursor.execute(
+                    f"UPDATE {tbl} SET record_date = date(record_date) WHERE length(record_date) > 10"
+                )
+            # delta 表的 entry_date 也需要标准化
+            cursor.execute(
+                f"UPDATE {delta_table} SET entry_date = date(entry_date) WHERE length(entry_date) > 10"
+            )
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS update_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,6 +102,10 @@ class StockDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # 迁移 update_log 的 update_date
+        cursor.execute(
+            "UPDATE update_log SET update_date = date(update_date) WHERE length(update_date) > 10"
+        )
         conn.commit()
         conn.close()
 
@@ -106,7 +134,7 @@ class StockDatabase:
         """保存股票数据到数据库"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
-        cursor.execute(f"DELETE FROM {table_name} WHERE date(record_date) = date(?)", (record_date,))
+        cursor.execute(f"DELETE FROM {table_name} WHERE record_date = ?", (record_date,))
         cursor.executemany(
             f"INSERT INTO {table_name} (stock_code, stock_name, record_date) VALUES (?, ?, ?)",
             [(s[0], s[1], record_date) for s in stock_data.items()],
@@ -119,7 +147,7 @@ class StockDatabase:
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT DISTINCT date(record_date) as record_day FROM {table_name} ORDER BY record_day DESC LIMIT ?",
+            f"SELECT DISTINCT record_date FROM {table_name} ORDER BY record_date DESC LIMIT ?",
             (limit,),
         )
         dates = [row[0] for row in cursor.fetchall()]
@@ -130,7 +158,7 @@ class StockDatabase:
         """获取指定日期的股票数据"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
-        cursor.execute(f"SELECT stock_code, stock_name FROM {table_name} WHERE date(record_date) = ?", (date,))
+        cursor.execute(f"SELECT stock_code, stock_name FROM {table_name} WHERE record_date = ?", (date,))
         result = {row[0]: row[1] for row in cursor.fetchall()}
         conn.close()
         return result
@@ -155,12 +183,11 @@ class StockDatabase:
         """保存增量股票到数据库"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
-        utc_now = datetime.now(timezone.utc).isoformat()
         tq = get_tq()
 
         for stock in added:
             cursor.execute(
-                f"SELECT id FROM {delta_table} WHERE stock_code = ? AND date(record_date) = date(?)",
+                f"SELECT id FROM {delta_table} WHERE stock_code = ? AND record_date = ?",
                 (stock, record_date),
             )
             if cursor.fetchone():
@@ -168,7 +195,7 @@ class StockDatabase:
             buy_point = self.calculate_buy_point(tq, stock)
             cursor.execute(
                 f"INSERT INTO {delta_table} (stock_code, stock_name, entry_date, buy_point, record_date) VALUES (?, ?, ?, ?, ?)",
-                (stock, curr_db.get(stock, ''), utc_now, buy_point, utc_now),
+                (stock, curr_db.get(stock, ''), record_date, buy_point, record_date),
             )
         conn.commit()
         conn.close()
@@ -205,7 +232,7 @@ class StockDatabase:
         """保存更新日志"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
-        today = datetime.now(timezone.utc).isoformat()
+        today = date.today().isoformat()
         cursor.execute(
             """INSERT INTO update_log (update_date, block_code, prev_count, curr_count, added_count, removed_count) VALUES (?, ?, ?, ?, ?, ?)""",
             (today, block_code, prev_count, curr_count, added, removed),
@@ -217,9 +244,9 @@ class StockDatabase:
         """清理旧数据"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
-        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=keep_days)).isoformat()
-        cursor.execute(f"DELETE FROM {table_name} WHERE date(record_date) < date(?)", (cutoff_date,))
-        cursor.execute(f"DELETE FROM {delta_table} WHERE date(record_date) < date(?)", (cutoff_date,))
+        cutoff_date = (date.today() - timedelta(days=keep_days)).isoformat()
+        cursor.execute(f"DELETE FROM {table_name} WHERE record_date < ?", (cutoff_date,))
+        cursor.execute(f"DELETE FROM {delta_table} WHERE record_date < ?", (cutoff_date,))
         conn.commit()
         conn.close()
 
@@ -236,10 +263,14 @@ class StockDatabase:
         """处理单个板块的数据库更新"""
         block_code = block_config.get('code')
         target_block = block_config.get('target_block')
-        table_name = block_code.lower()
-        delta_table = f"{block_code.lower()}_delta"
+        try:
+            table_name = _safe_table_name(block_code.lower())
+            delta_table = _safe_table_name(f"{block_code.lower()}_delta")
+        except ValueError as e:
+            print(f"板块 '{block_code}' 表名校验失败：{e}")
+            return {'block_code': block_code, 'error': str(e)}
 
-        today = datetime.now(timezone.utc).isoformat()
+        today = date.today().isoformat()
         stock_data = self.fetch_stocks(block_code, block_manager, block_type=1)
 
         if not stock_data:

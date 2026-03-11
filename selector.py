@@ -97,11 +97,15 @@ class StockSelector:
                             for key, value in stock_data.items():
                                 if key not in ['XG', 'SELECT', 'BUY', 'OUTPUT', 'OUTPUT1'] or value is None:
                                     continue
+                                matched = False
                                 if isinstance(value, list) and len(value) > 0:
                                     if '1' in [str(v).strip() for v in value]:
-                                        selected.append(stock_code)
+                                        matched = True
                                 elif str(value).strip() == '1':
+                                    matched = True
+                                if matched:
                                     selected.append(stock_code)
+                                    break
 
             except Exception as e:
                 print(f"选股异常：{formula_name} - {e}")

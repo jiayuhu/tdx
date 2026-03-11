@@ -80,6 +80,10 @@ class BlockManager:
         self, block_code: str, stocks: List[str], show: bool = False
     ) -> Dict[str, Any]:
         """添加股票到板块"""
+        if not block_code:
+            return {"ErrorId": "-1", "Error": "板块简称不能为空"}
+        if not stocks:
+            return {"ErrorId": "-1", "Error": "股票列表不能为空"}
         result = self.tq.send_user_block(block_code=block_code, stocks=stocks, show=show)
         self._tq_delay()
         return result
@@ -105,7 +109,10 @@ class BlockManager:
                 return False
         else:
             print(f"清空板块 '{block_code}' 中的股票...")
-            self.clear_block_stocks(block_code)
+            result = self.clear_block_stocks(block_code)
+            if result.get('ErrorId') != '0':
+                print(f"清空板块失败：{result.get('Error')}")
+                return False
             return True
 
     def get_source_stocks(self, source_block: str) -> Optional[List[str]]:

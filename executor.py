@@ -50,7 +50,9 @@ def execute_single_strategy(
     selected_stocks = selector.select_by_formula(stock_list, formula_name, stock_period=stock_period)
 
     if selected_stocks:
-        block_manager.add_stocks_to_block(target_block, selected_stocks)
+        result = block_manager.add_stocks_to_block(target_block, selected_stocks)
+        if isinstance(result, dict) and result.get('ErrorId') not in (None, '0', 0):
+            print(f"写入板块失败：{result.get('Error', '未知错误')}")
 
     return {
         'name': config.get('name'),
@@ -82,13 +84,14 @@ def execute_multi_strategy(
     formulas: List[str] = config.get('formulas', [])
     current_stocks = stock_list
     initial_count = len(stock_list)
+    stock_period = config.get('stock_period', DEFAULT_PERIOD)
 
     for i, formula_name in enumerate(formulas, 1):
         if not current_stocks:
             print("当前股票池为空，停止选股")
             break
 
-        selected_stocks = selector.select_by_formula(current_stocks, formula_name)
+        selected_stocks = selector.select_by_formula(current_stocks, formula_name, stock_period=stock_period)
         output_count = len(selected_stocks)
         input_count = len(current_stocks)
         pct = output_count * 100 // input_count if input_count else 0
@@ -97,7 +100,9 @@ def execute_multi_strategy(
         current_stocks = selected_stocks
 
     if current_stocks:
-        block_manager.add_stocks_to_block(target_block, current_stocks)
+        result = block_manager.add_stocks_to_block(target_block, current_stocks)
+        if isinstance(result, dict) and result.get('ErrorId') not in (None, '0', 0):
+            print(f"写入板块失败：{result.get('Error', '未知错误')}")
 
     total_pct = len(current_stocks) * 100 // initial_count if initial_count else 0
 
@@ -136,8 +141,12 @@ def execute_parallel_strategy(
         if not block_manager.prepare_target_block(target_block, target_block_name):
             continue
 
-        selector.select_by_formula(stock_list, formula_name, stock_period=stock_period)
-        actual_count = block_manager.get_block_count(target_block)
+        selected_stocks = selector.select_by_formula(stock_list, formula_name, stock_period=stock_period)
+        if selected_stocks:
+            add_result = block_manager.add_stocks_to_block(target_block, selected_stocks)
+            if isinstance(add_result, dict) and add_result.get('ErrorId') not in (None, '0', 0):
+                print(f"写入板块 {target_block} 失败：{add_result.get('Error', '未知错误')}")
+        actual_count = len(selected_stocks)
 
         results.append({
             'target_block': target_block,

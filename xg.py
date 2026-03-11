@@ -128,12 +128,6 @@ def print_summary(block_manager: BlockManager, strategies: List[Dict]) -> None:
     print(f"{'板块':<10} {'板块名称':<20} {'数量':>8}")
     print("-" * 70)
 
-    # 从策略配置中收集所有板块
-    all_blocks = set()
-    for strategy in strategy_blocks:
-        for _, block_name in strategy['targets']:
-            all_blocks.add((strategy['targets'][0][0].split('_')[0], block_name))
-    
     # 添加固定板块
     fixed_blocks = [
         ("X01", "X01_低于五年周线"),

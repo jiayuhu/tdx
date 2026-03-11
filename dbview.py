@@ -12,12 +12,21 @@
     python dbview.py --data b01 -n 10  # 查看 b01 表前 10 条数据
 """
 
+import re
 import sqlite3
+import sys
 import argparse
 from pathlib import Path
 from typing import List, Dict, Optional
 
 DB_PATH = Path(__file__).parent / "data" / "quant.db"
+
+_TABLE_NAME_RE = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+
+def _validate_table_name(name: str) -> bool:
+    """校验表名是否只含字母、数字和下划线"""
+    return bool(_TABLE_NAME_RE.match(name))
 
 
 def get_connection() -> sqlite3.Connection:
@@ -55,6 +64,10 @@ def list_tables(conn: sqlite3.Connection) -> None:
 
 def show_table_schema(conn: sqlite3.Connection, table_name: str) -> None:
     """显示表结构"""
+    if not _validate_table_name(table_name):
+        print(f"错误：表名 '{table_name}' 含有非法字符")
+        return
+
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -104,6 +117,10 @@ def show_table_schema(conn: sqlite3.Connection, table_name: str) -> None:
 def show_table_data(conn: sqlite3.Connection, table_name: str, 
                     limit: int = 10, where: Optional[str] = None) -> None:
     """显示表数据"""
+    if not _validate_table_name(table_name):
+        print(f"错误：表名 '{table_name}' 含有非法字符")
+        return
+
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -122,7 +139,7 @@ def show_table_data(conn: sqlite3.Connection, table_name: str,
     query = f"SELECT * FROM {table_name}"
     if where:
         query += f" WHERE {where}"
-    query += f" ORDER BY id DESC LIMIT {limit}"
+    query += f" ORDER BY id DESC LIMIT {int(limit)}"
 
     cursor.execute(query)
     rows = cursor.fetchall()
