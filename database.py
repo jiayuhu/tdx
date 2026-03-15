@@ -50,6 +50,8 @@ class StockDatabase:
 
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.db_path.touch(exist_ok=True)
 
     def init(self, blocks: List[Dict[str, Any]]) -> None:
         """初始化数据库表结构"""

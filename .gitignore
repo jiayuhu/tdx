@@ -12,7 +12,7 @@ nul
 
 # Virtual environments
 .venv
-data/quant.db
+data/
 web/bin/
 web/obj/
 .vs/
