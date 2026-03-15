@@ -5,7 +5,7 @@
 1. **Python 选股程序**（根目录） - 调用通达信公式引擎执行多策略组合选股，将结果写入 SQLite 数据库
 2. **ASP.NET Core Web 展示程序**（`web/` 目录） - 读取数据库，展示每日选股结果
 
-两个程序通过共享的 SQLite 数据库（`data/quant.db`）进行数据交互。
+两个程序通过共享的 SQLite 数据库（`data/quant.db`）进行数据交互。`data/` 目录为运行时目录，不纳入 Git；程序会在首次运行时自动创建该目录和数据库文件。
 
 ## 系统架构
 
@@ -122,8 +122,8 @@ tdx/
 |-- dbview.py                # 数据库查看工具（CLI）
 |-- dbclear.py               # 数据库清理工具（CLI）
 |-- pyproject.toml           # Python 项目配置
-|-- data/
-|   +-- quant.db             # SQLite 数据库（两个程序共享）
+|-- data/                    # 运行时自动创建（已被 .gitignore 忽略）
+|   +-- quant.db             # SQLite 数据库（首次运行自动创建）
 |-- web/                     # ASP.NET Core Web 展示程序
 |   |-- Program.cs           # 启动配置
 |   |-- web.csproj           # .NET 项目文件
@@ -166,11 +166,12 @@ uv run python xg.py --info below240w
 ### 2. Web 展示程序
 
 ```bash
-# 开发模式
-.\start_web_dev.bat
-
-# 生产模式
+# 启动 Web 展示程序
 .\start_web.bat
+
+# 或直接运行（等效）
+cd .\web
+dotnet run --urls "http://localhost:5000"
 ```
 
 ### 3. 辅助工具

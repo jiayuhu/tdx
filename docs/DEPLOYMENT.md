@@ -82,10 +82,7 @@ uv run python xg.py --list
 
 #### 步骤5: 启动服务
 ```bash
-# 开发模式
-.\start_web_dev.bat
-
-# 生产模式
+# 启动 Web 服务（项目根目录）
 .\start_web.bat
 ```
 
@@ -107,23 +104,13 @@ uv run python xg.py --list
 
 ### 2.3 Web服务部署
 
-#### 开发环境启动
-```bat
-:: start_web_dev.bat
-@echo off
-cd /d "%~dp0"
-echo 启动 TDX Web 开发服务...
-uv run python -m flask run --host=0.0.0.0 --port=5000 --debug
-pause
-```
-
-#### 生产环境启动
+#### Web 服务启动（当前实现）
 ```bat
 :: start_web.bat
 @echo off
-cd /d "%~dp0"
+cd /d "%~dp0web"
 echo 启动 TDX Web 服务...
-uv run gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
+dotnet run --urls "http://localhost:5000"
 ```
 
 ---
@@ -139,7 +126,7 @@ uv run gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
 tdx_root: "D:\\App\\new_tdx64"
 
 # TQ 操作延时(毫秒)
-tq_delay_ms: 100
+tq_delay_ms: 500
 
 # 选股策略配置
 xg_programs:
@@ -152,7 +139,7 @@ xg_programs:
 # .env (可选)
 TDX_ROOT=D:\App\new_tdx64
 LOG_LEVEL=INFO
-DATABASE_PATH=./data/quant.db
+DATABASE_PATH=./data/quant.db  # 运行时自动创建；data/ 目录不提交到 Git
 ```
 
 ### 3.3 多环境配置
@@ -175,7 +162,7 @@ cp config.prod.yaml config.yaml
 # 启动选股服务
 uv run python xg.py
 
-# 启动 Web 服务
+# 启动 Web 服务（项目根目录）
 .\start_web.bat
 
 # 后台运行
@@ -200,7 +187,7 @@ uv run python -c "from base import get_tq; print('TQ状态:', get_tq() is not No
 uv run python dbview.py --tables
 
 # 检查 Web 服务
-curl http://localhost:5000/health
+curl http://localhost:5000/
 ```
 
 ### 4.4 Windows 服务注册 (可选)
@@ -443,7 +430,7 @@ Remove-Item *.log -Force
 tar -czf tdx_backup_$(date +%Y%m%d).tar.gz .
 
 # 2. 拉取新版本
-git pull origin main
+git pull origin master
 
 # 3. 更新依赖
 uv sync

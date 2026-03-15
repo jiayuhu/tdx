@@ -101,6 +101,7 @@ def _to_beijing(utc_str: str) -> str:
 **约束**:
 - 不支持高并发写入
 - 单文件存储，注意备份
+- 数据库路径固定为 `data/quant.db`，`data/` 目录由程序运行时自动创建且不纳入 Git
 
 ---
 
@@ -278,7 +279,7 @@ def execute_with_retry(func, max_retries=3, delay=1.0):
 
 ### 7.2 访问控制
 
-- **文件权限**: `data/quant.db` 设置适当权限
+- **文件权限**: `data/quant.db` 设置适当权限（`data/` 目录由程序自动创建）
 - **日志过滤**: 错误日志中不输出敏感信息
 - **API 限流**: TQ API 调用间保持适当延时
 

@@ -96,10 +96,10 @@ TQ 数据接口初始化失败
 tasklist | findstr tdx
 
 # 2. 验证配置路径
-python -c "from base import get_config; print(get_config()['tdx_root'])"
+uv run python -c "from base import init_tq_context, get_config; init_tq_context('xg.py'); print(get_config()['tdx_root'])"
 
 # 3. 手动测试 TQ 导入
-python -c "import sys; sys.path.insert(0, 'D:/通达信路径/PYPlugins/user'); from tqcenter import tq; print('TQ导入成功')"
+uv run python -c "import sys; sys.path.insert(0, 'D:/通达信路径/PYPlugins/user'); from tqcenter import tq; print('TQ导入成功')"
 
 # 4. 以管理员身份运行
 ```
@@ -272,7 +272,7 @@ sqlite3 data/quant.db "VACUUM;"
 uv run python dbview.py --search b01 "date(record_date) BETWEEN '2026-03-08' AND '2026-03-10'"
 
 # 2. 手动计算增量
-python -c "
+uv run python -c "
 from database import StockDatabase
 db = StockDatabase('./data/quant.db')
 curr = db.get_stocks_by_date('b01', '2026-03-10')
@@ -389,7 +389,7 @@ Could not find a version that satisfies the requirement
 **解决方案**:
 ```bash
 # 1. 更新 pip 和 uv
-python -m pip install --upgrade pip
+uv run python -m pip install --upgrade pip
 pip install uv --upgrade
 
 # 2. 使用国内镜像源
@@ -443,28 +443,15 @@ taskkill /PID <进程ID> /F
 
 # 3. 更改端口
 # start_web.bat
-uv run python -m flask run --port 5001
+dotnet run --project web --urls "http://localhost:5001"
 ```
 
 ### 7.2 页面加载缓慢
 
 **优化建议**:
-```python
-# 1. 启用缓存
-from flask import Flask
-from flask_caching import Cache
-
-app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-
-@app.route('/data')
-@cache.cached(timeout=300)  # 缓存5分钟
-def get_data():
-    # 数据查询逻辑
-    pass
-
-# 2. 数据分页
-# 限制单次返回记录数
+```csharp
+// 1. 使用 IMemoryCache 缓存热点查询
+// 2. 在 Razor Pages 中进行分页查询，限制单次返回记录数
 ```
 
 ### 7.3 API 接口错误
@@ -478,8 +465,7 @@ fetch('/api/stocks')
   .catch(error => console.error('Error:', error));
 
 // 后端日志
-# 查看 Flask 日志
-tail -f app.log
+// 查看 dotnet 运行日志输出
 ```
 
 ---

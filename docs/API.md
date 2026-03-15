@@ -108,7 +108,7 @@
 
 #### 类: `StockDatabase`
 
-##### `__init__(db_path: str)`
+##### `__init__(db_path: Path)`
 初始化数据库
 
 **参数**:
@@ -190,7 +190,7 @@
 ##### `execute_parallel_strategy(config: Dict, selector, block_manager) -> Optional[Dict]`
 执行多公式并行策略
 
-##### `execute_db_update(config: Dict, selector, block_manager) -> Optional[Dict]`
+##### `execute_db_update(config: Dict, block_manager) -> Optional[Dict]`
 执行数据库更新策略
 
 ---
@@ -273,61 +273,61 @@ keep_days: integer        # 必填，≥1
 
 ```bash
 # 执行全部策略
-python xg.py
+uv run python xg.py
 
 # 执行单个策略
-python xg.py --strategy STRATEGY_NAME
+uv run python xg.py --strategy STRATEGY_NAME
 
 # 执行多个策略
-python xg.py --strategy STRATEGY1 STRATEGY2
+uv run python xg.py --strategy STRATEGY1 STRATEGY2
 
 # 列出所有策略
-python xg.py --list
+uv run python xg.py --list
 
 # 查看策略详情
-python xg.py --info STRATEGY_NAME
+uv run python xg.py --info STRATEGY_NAME
 ```
 
 ### 3.2 blocks.py
 
 ```bash
 # 列出所有板块
-python blocks.py list
+uv run python blocks.py list
 
 # 查看板块详情
-python blocks.py info BLOCK_CODE
+uv run python blocks.py info BLOCK_CODE
 
 # 创建板块
-python blocks.py create BLOCK_CODE "板块名称"
+uv run python blocks.py create BLOCK_CODE "板块名称"
 
 # 清空板块
-python blocks.py clear BLOCK_CODE
+uv run python blocks.py clear BLOCK_CODE
 ```
 
 ### 3.3 dbview.py
 
 ```bash
 # 交互模式
-python dbview.py
+uv run python dbview.py
 
 # 列出所有表
-python dbview.py --tables
+uv run python dbview.py --tables
 
 # 查看表结构
-python dbview.py --schema TABLE_NAME
+uv run python dbview.py --schema TABLE_NAME
 
 # 查看表数据
-python dbview.py --data TABLE_NAME [-n LIMIT]
+uv run python dbview.py --data TABLE_NAME [-n LIMIT]
 
 # 搜索数据
-python dbview.py --search TABLE_NAME "WHERE_CONDITION"
+uv run python dbview.py --search TABLE_NAME "WHERE_CONDITION"
 ```
 
 ### 3.4 dbclear.py
 
 ```bash
 # 清空数据库
-python dbclear.py
+uv run python dbclear.py
 ```
 
 ---
@@ -396,7 +396,7 @@ CREATE TABLE update_log (
 | `tq.get_stock_list_in_sector()` | 获取板块成分股 | `BlockManager.get_block_stocks()` |
 | `tq.formula_process_mul_xg()` | 批量公式选股 | `StockSelector.select_by_formula()` |
 | `tq.get_stock_info()` | 获取股票信息 | `StockSelector.get_stock_name()` |
-| `tq.get_market_data()` | 获取行情数据 | `StockSelector.get_close_prices()` |
+| `tq.get_market_data()` | 获取行情数据 | `StockDatabase.calculate_buy_point()` |
 | `tq.create_sector()` | 创建板块 | `BlockManager.create_block()` |
 | `tq.clear_sector()` | 清空板块 | `BlockManager.clear_block_stocks()` |
 | `tq.send_user_block()` | 添加股票到板块 | `BlockManager.add_stocks_to_block()` |

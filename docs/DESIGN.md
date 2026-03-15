@@ -28,7 +28,7 @@
 │                    数据访问层 (Data Access Layer)            │
 ├─────────────────────────────────────────────────────────────┤
 │       TdxQuant API          │      SQLite (data/quant.db)   │
-│   (仅 Python 选股程序)       │    (两个程序共享，写/读分离)    │
+│   (仅 Python 选股程序)       │ (两个程序共享；data/ 运行时创建) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,6 +114,8 @@ class StockDatabase:
     
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.db_path.touch(exist_ok=True)
         
     def save_stocks(self, table_name: str, stock_data: Dict[str, str], record_date: str) -> None:
         """保存选股结果"""
