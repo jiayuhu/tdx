@@ -16,8 +16,21 @@ import re
 import sqlite3
 import sys
 import argparse
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional
+
+_BJT_OFFSET = timedelta(hours=8)
+
+
+def _to_beijing(utc_str: str) -> str:
+    """将 UTC 时间字符串转换为北京时间 (UTC+8) 显示"""
+    try:
+        dt = datetime.strptime(utc_str, '%Y-%m-%d %H:%M:%S')
+        bjt = dt + _BJT_OFFSET
+        return bjt.strftime('%Y-%m-%d %H:%M:%S')
+    except (ValueError, TypeError):
+        return utc_str
 
 DB_PATH = Path(__file__).parent / "data" / "quant.db"
 
@@ -135,13 +148,35 @@ def show_table_data(conn: sqlite3.Connection, table_name: str,
     cursor.execute(f"PRAGMA table_info({table_name})")
     columns = cursor.fetchall()
     col_names = [col['name'] for col in columns]
+    # 识别 DATETIME/TIMESTAMP 列，用于 UTC→北京时间转换
+    datetime_cols = {
+        col['name'] for col in columns
+        if col['type'].upper() in ('DATETIME', 'TIMESTAMP')
+    }
 
     query = f"SELECT * FROM {table_name}"
+    params = []
+    
     if where:
-        query += f" WHERE {where}"
+        # 简单的 WHERE 条件验证：只支持 column = 'value' 格式
+        import re
+        match = re.match(r"^(\w+)\s*=\s*[\"'](.+?)[\"']\s*$", where.strip())
+        if match:
+            col_name, value = match.groups()
+            # 验证列名是否存在于表中
+            if col_name in col_names:
+                query += f" WHERE {col_name} = ?"
+                params.append(value)
+            else:
+                print(f"错误：列名 '{col_name}' 不存在")
+                return
+        else:
+            print("错误：WHERE 条件格式不支持（仅支持 column = 'value'）")
+            return
+    
     query += f" ORDER BY id DESC LIMIT {int(limit)}"
-
-    cursor.execute(query)
+    
+    cursor.execute(query, params)
     rows = cursor.fetchall()
 
     print(f"\n表：{table_name}")
@@ -155,6 +190,8 @@ def show_table_data(conn: sqlite3.Connection, table_name: str,
             max_width = len(col_name)
             for row in rows:
                 val = str(row[i]) if row[i] is not None else 'NULL'
+                if col_name in datetime_cols:
+                    val = _to_beijing(val)
                 max_width = max(max_width, len(val))
             col_widths.append(min(max_width, 30))
 
@@ -167,6 +204,8 @@ def show_table_data(conn: sqlite3.Connection, table_name: str,
             values = []
             for i, val in enumerate(row):
                 val_str = str(val) if val is not None else 'NULL'
+                if col_names[i] in datetime_cols and val is not None:
+                    val_str = _to_beijing(val_str)
                 if len(val_str) > col_widths[i]:
                     val_str = val_str[:col_widths[i]-3] + '...'
                 values.append(val_str.ljust(col_widths[i]))
@@ -222,22 +261,32 @@ def interactive_mode(conn: sqlite3.Connection) -> None:
             if len(parts) < 2:
                 print("用法：schema <表名>")
             else:
-                show_table_schema(conn, parts[1])
+                table_name = parts[1]
+                if not _validate_table_name(table_name):
+                    print(f"错误：表名 '{table_name}' 含有非法字符")
+                else:
+                    show_table_schema(conn, table_name)
         elif command == 'data':
             if len(parts) < 2:
                 print("用法：data <表名> [记录数]")
             else:
                 table_name = parts[1]
-                limit = int(parts[2]) if len(parts) > 2 else 10
-                show_table_data(conn, table_name, limit)
+                if not _validate_table_name(table_name):
+                    print(f"错误：表名 '{table_name}' 含有非法字符")
+                else:
+                    limit = int(parts[2]) if len(parts) > 2 else 10
+                    show_table_data(conn, table_name, limit)
         elif command == 'search':
             if len(parts) < 3:
                 print("用法：search <表名> <WHERE 条件>")
                 print("示例：search b01 record_date = '2026-03-08'")
             else:
                 table_name = parts[1]
-                where = ' '.join(parts[2:])
-                show_table_data(conn, table_name, limit=50, where=where)
+                if not _validate_table_name(table_name):
+                    print(f"错误：表名 '{table_name}' 含有非法字符")
+                else:
+                    where = ' '.join(parts[2:])
+                    show_table_data(conn, table_name, limit=50, where=where)
         else:
             print(f"未知命令：{command}")
             print("输入 'help' 查看可用命令")

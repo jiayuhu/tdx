@@ -22,6 +22,7 @@ from base import (
     DIVIDEND_TYPE,
     get_tq,
 )
+from logging_config import logger, log_exceptions, suppress_tq_errors
 
 
 class StockSelector:
@@ -36,19 +37,27 @@ class StockSelector:
         try:
             info = self.tq.get_stock_info(stock_code, field_list=['Name'])
             if not info:
+                logger.debug(f"股票 {stock_code} 无基本信息")
                 return False
             name = info.get('Name', '')
             st_markers = ['ST', '*ST', '退', '退市']
-            return any(marker in name.upper() for marker in st_markers)
-        except Exception:
+            is_st = any(marker in name.upper() for marker in st_markers)
+            if is_st:
+                logger.debug(f"股票 {stock_code} 是ST股: {name}")
+            return is_st
+        except Exception as e:
+            logger.warning(f"检查股票 {stock_code} 是否为ST股失败: {e}")
             return False
 
     def get_stock_name(self, stock_code: str) -> str:
         """获取股票名称"""
         try:
             info = self.tq.get_stock_info(stock_code, field_list=['Name'])
-            return info.get('Name', '') if info else ''
-        except Exception:
+            name = info.get('Name', '') if info else ''
+            logger.debug(f"获取股票 {stock_code} 名称: {name}")
+            return name
+        except Exception as e:
+            logger.warning(f"获取股票 {stock_code} 名称失败: {e}")
             return ''
 
     def select_by_formula(
@@ -59,6 +68,7 @@ class StockSelector:
         filter_st: bool = True,
     ) -> List[str]:
         """使用通达信公式引擎批量选股"""
+        logger.info(f"开始执行选股公式: {formula_name}, 股票数量: {len(stock_list)}, 过滤ST: {filter_st}")
         selected: List[str] = []
 
         non_st_list = (
@@ -66,6 +76,9 @@ class StockSelector:
             if filter_st
             else stock_list
         )
+        
+        if filter_st:
+            logger.info(f"过滤ST股后剩余 {len(non_st_list)} 只股票")
 
         if stock_period is None:
             stock_period = DEFAULT_PERIOD
@@ -75,18 +88,21 @@ class StockSelector:
             for i in range(0, len(non_st_list), BATCH_SIZE)
         ]
 
-        for batch in batches:
+        for i, batch in enumerate(batches):
             try:
-                result = self.tq.formula_process_mul_xg(
-                    formula_name=formula_name,
-                    formula_arg='',
-                    return_count=1,
-                    return_date=False,
-                    stock_list=batch,
-                    stock_period=stock_period,
-                    count=DATA_COUNT,
-                    dividend_type=DIVIDEND_TYPE,
-                )
+                logger.debug(f"处理第 {i+1}/{len(batches)} 批次，包含 {len(batch)} 只股票")
+                # 为 formula_process_mul_xg 增加错误抑制
+                with suppress_tq_errors():
+                    result = self.tq.formula_process_mul_xg(
+                        formula_name=formula_name,
+                        formula_arg='',
+                        return_count=1,
+                        return_date=False,
+                        stock_list=batch,
+                        stock_period=stock_period,
+                        count=DATA_COUNT,
+                        dividend_type=DIVIDEND_TYPE,
+                    )
 
                 if result and isinstance(result, dict):
                     for stock_code, stock_data in result.items():
@@ -108,6 +124,7 @@ class StockSelector:
                                     break
 
             except Exception as e:
-                print(f"选股异常：{formula_name} - {e}")
+                logger.error(f"选股异常：{formula_name} - 第{i+1}批次处理失败: {e}")
 
+        logger.info(f"选股完成: 公式 {formula_name} 共选出 {len(selected)} 只股票")
         return selected

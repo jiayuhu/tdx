@@ -52,6 +52,8 @@ def execute_single_strategy(
     if selected_stocks:
         result = block_manager.add_stocks_to_block(target_block, selected_stocks)
         if isinstance(result, dict) and result.get('ErrorId') not in (None, '0', 0):
+            import logging
+            logging.getLogger(__name__).error(f"写入板块失败：{result.get('Error', '未知错误')}")
             print(f"写入板块失败：{result.get('Error', '未知错误')}")
 
     return {
@@ -102,6 +104,8 @@ def execute_multi_strategy(
     if current_stocks:
         result = block_manager.add_stocks_to_block(target_block, current_stocks)
         if isinstance(result, dict) and result.get('ErrorId') not in (None, '0', 0):
+            import logging
+            logging.getLogger(__name__).error(f"写入板块失败：{result.get('Error', '未知错误')}")
             print(f"写入板块失败：{result.get('Error', '未知错误')}")
 
     total_pct = len(current_stocks) * 100 // initial_count if initial_count else 0
@@ -145,6 +149,8 @@ def execute_parallel_strategy(
         if selected_stocks:
             add_result = block_manager.add_stocks_to_block(target_block, selected_stocks)
             if isinstance(add_result, dict) and add_result.get('ErrorId') not in (None, '0', 0):
+                import logging
+                logging.getLogger(__name__).error(f"写入板块 {target_block} 失败：{add_result.get('Error', '未知错误')}")
                 print(f"写入板块 {target_block} 失败：{add_result.get('Error', '未知错误')}")
         actual_count = len(selected_stocks)
 

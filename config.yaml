@@ -7,7 +7,7 @@ tdx_root: "D:\\App\\new_tdx64"
 # 通达信 TQ API 对板块操作后需要一定时间同步数据
 # 建议在两次板块操作之间延时 100-500 毫秒
 # 如果看到"获取板块成分股错误"的日志，可以增加延时时间
-tq_delay_ms: 200
+tq_delay_ms: 500
 
 # 选股程序执行列表（按顺序执行）
 xg_programs:
@@ -30,16 +30,16 @@ xg_programs:
       - "X02_LTSZ100Y"
       - "X03_MG_GOOD"
       - "X04_MG_GR_Q4"
-      - "X05_GX_BT0"
+      - "X05_GX_GT0"
 
   - name: "buy_kdj_small"
     desc: "KDJ 买入信号 (X02 → B00/B01/B02)"
     type: "parallel"
     source_block: "X02"
     formulas:
-      - formula_name: "B00_KDJ5W"
+      - formula_name: "B00_KDJ_5W"
         target_block: "B00"
-        target_block_name: "B00_KDJ5W"
+        target_block_name: "B00_KDJ_5W"
         stock_period: "1w"
       - formula_name: "B01_KDJ_DJC"
         target_block: "B01"

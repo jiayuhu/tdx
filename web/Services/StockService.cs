@@ -18,200 +18,78 @@ public class StockService
     }
 
     /// <summary>
-    /// 获取 B01 数据
+    /// 通用日报查询（按 record_date 倒序）
     /// </summary>
-    public async Task<List<B01Stock>> GetB01DataAsync()
+    private async Task<List<T>> QueryStocksAsync<T>(
+        Func<TdxDbContext, DbSet<T>> dbSetSelector,
+        string tableName,
+        int limit = 1000) where T : StockBase
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.B01
+            return await dbSetSelector(context)
                 .OrderByDescending(s => s.RecordDate)
                 .ThenByDescending(s => s.Id)
-                .Take(1000)
+                .Take(limit)
                 .ToListAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "查询 B01 失败");
-            return new List<B01Stock>();
+            _logger.LogError(ex, "查询 {TableName} 失败", tableName);
+            return [];
         }
     }
 
     /// <summary>
-    /// 获取 B01_DELTA 数据
+    /// 通用增量查询（按 entry_date 倒序）
     /// </summary>
-    public async Task<List<B01DeltaStock>> GetB01DeltaDataAsync()
+    private async Task<List<T>> QueryDeltaAsync<T>(
+        Func<TdxDbContext, DbSet<T>> dbSetSelector,
+        string tableName,
+        int limit = 1000) where T : DeltaStockBase
     {
         try
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.B01Delta
+            return await dbSetSelector(context)
                 .OrderByDescending(s => s.EntryDate)
                 .ThenByDescending(s => s.Id)
-                .Take(1000)
+                .Take(limit)
                 .ToListAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "查询 B01_DELTA 失败");
-            return new List<B01DeltaStock>();
+            _logger.LogError(ex, "查询 {TableName} 失败", tableName);
+            return [];
         }
     }
 
-    /// <summary>
-    /// 获取 B02 数据
-    /// </summary>
-    public async Task<List<B02Stock>> GetB02DataAsync()
-    {
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.B02
-                .OrderByDescending(s => s.RecordDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "查询 B02 失败");
-            return new List<B02Stock>();
-        }
-    }
+    // ── 长线选股 ──
 
-    /// <summary>
-    /// 获取 B02_DELTA 数据
-    /// </summary>
-    public async Task<List<B02DeltaStock>> GetB02DeltaDataAsync()
-    {
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.B02Delta
-                .OrderByDescending(s => s.EntryDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "查询 B02_DELTA 失败");
-            return new List<B02DeltaStock>();
-        }
-    }
+    public Task<List<B01Stock>> GetB01DataAsync()
+        => QueryStocksAsync(c => c.B01, "B01");
 
-    /// <summary>
-    /// 获取 BA1 数据
-    /// </summary>
-    public async Task<List<BA1Stock>> GetBA1DataAsync()
-    {
-        Console.WriteLine("=== 开始查询 BA1 ===");
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            Console.WriteLine($"数据库连接成功");
-            
-            var query = context.BA1
-                .OrderByDescending(s => s.RecordDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000);
-            
-            Console.WriteLine($"SQL: {query.ToQueryString()}");
-            
-            var result = await query.ToListAsync();
-            Console.WriteLine($"BA1 查询到 {result.Count} 条数据");
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"BA1 查询失败：{ex.Message}");
-            Console.WriteLine($"堆栈：{ex.StackTrace}");
-            return new List<BA1Stock>();
-        }
-    }
+    public Task<List<B01DeltaStock>> GetB01DeltaDataAsync()
+        => QueryDeltaAsync(c => c.B01Delta, "B01_DELTA");
 
-    /// <summary>
-    /// 获取 BA1_DELTA 数据
-    /// </summary>
-    public async Task<List<BA1DeltaStock>> GetBA1DeltaDataAsync()
-    {
-        Console.WriteLine("=== 开始查询 BA1_DELTA ===");
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            Console.WriteLine("数据库连接成功");
-            
-            var query = context.BA1Delta
-                .OrderByDescending(s => s.EntryDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000);
-            
-            Console.WriteLine($"SQL: {query.ToQueryString()}");
-            
-            var result = await query.ToListAsync();
-            Console.WriteLine($"查询到 {result.Count} 条数据");
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"查询 BA1_DELTA 失败：{ex.Message}");
-            Console.WriteLine($"堆栈：{ex.StackTrace}");
-            return new List<BA1DeltaStock>();
-        }
-    }
+    public Task<List<B02Stock>> GetB02DataAsync()
+        => QueryStocksAsync(c => c.B02, "B02");
 
-    /// <summary>
-    /// 获取 BA2 数据
-    /// </summary>
-    public async Task<List<BA2Stock>> GetBA2DataAsync()
-    {
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            return await context.BA2
-                .OrderByDescending(s => s.RecordDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000)
-                .ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "查询 BA2 失败");
-            return new List<BA2Stock>();
-        }
-    }
+    public Task<List<B02DeltaStock>> GetB02DeltaDataAsync()
+        => QueryDeltaAsync(c => c.B02Delta, "B02_DELTA");
 
-    /// <summary>
-    /// 获取 BA2_DELTA 数据
-    /// </summary>
-    public async Task<List<BA2DeltaStock>> GetBA2DeltaDataAsync()
-    {
-        Console.WriteLine("=== 开始查询 BA2_DELTA ===");
-        try
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            Console.WriteLine("数据库连接成功");
-            
-            var query = context.BA2Delta
-                .OrderByDescending(s => s.EntryDate)
-                .ThenByDescending(s => s.Id)
-                .Take(1000);
-            
-            Console.WriteLine($"SQL: {query.ToQueryString()}");
-            
-            var result = await query.ToListAsync();
-            Console.WriteLine($"查询到 {result.Count} 条数据");
-            
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"查询 BA2_DELTA 失败：{ex.Message}");
-            Console.WriteLine($"堆栈：{ex.StackTrace}");
-            return new List<BA2DeltaStock>();
-        }
-    }
+    // ── 短线选股 ──
+
+    public Task<List<BA1Stock>> GetBA1DataAsync()
+        => QueryStocksAsync(c => c.BA1, "BA1");
+
+    public Task<List<BA1DeltaStock>> GetBA1DeltaDataAsync()
+        => QueryDeltaAsync(c => c.BA1Delta, "BA1_DELTA");
+
+    public Task<List<BA2Stock>> GetBA2DataAsync()
+        => QueryStocksAsync(c => c.BA2, "BA2");
+
+    public Task<List<BA2DeltaStock>> GetBA2DeltaDataAsync()
+        => QueryDeltaAsync(c => c.BA2Delta, "BA2_DELTA");
 }

@@ -1,10 +1,9 @@
 {
   "version": 2,
-  "dgSpecHash": "rwCXjeAquv0=",
+  "dgSpecHash": "75/WAxR6sw8=",
   "success": true,
   "projectFilePath": "D:\\dev\\tdx\\web\\web.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\jiayuhu\\.nuget\\packages\\dapper\\2.1.72\\dapper.2.1.72.nupkg.sha512",
     "C:\\Users\\jiayuhu\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\jiayuhu\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
     "C:\\Users\\jiayuhu\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",

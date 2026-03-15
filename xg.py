@@ -25,13 +25,20 @@
 
 import sys
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
 from base import init_tq_context, close_tq_context, get_tq, get_config
 from selector import StockSelector
 from blocks import BlockManager
 from executor import execute_strategy
+
+_BJT_OFFSET = timedelta(hours=8)
+
+
+def _beijing_now() -> str:
+    """返回当前北京时间字符串 (UTC+8)"""
+    return (datetime.now(timezone.utc) + _BJT_OFFSET).strftime('%Y-%m-%d %H:%M:%S')
 
 
 # ============================================================================
@@ -43,14 +50,14 @@ def print_header():
     print("\n" + "=" * 50)
     print("通达信选股程序")
     print("=" * 50)
-    print(f"开始：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"开始：{_beijing_now()}")
 
 
 def print_footer(success_count: int, total: int):
     """打印程序尾部信息"""
     print("=" * 50)
     print(f"完成：{success_count}/{total} 成功")
-    print(f"结束：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"结束：{_beijing_now()}")
 
     if success_count == total:
         print("[OK] 所有程序执行成功！")
@@ -61,70 +68,15 @@ def print_footer(success_count: int, total: int):
 
 def print_summary(block_manager: BlockManager, strategies: List[Dict]) -> None:
     """
-    打印选股结果汇总
+    打印最终板块持股统计
     直接查询通达信板块数据
     
     Args:
         block_manager: BlockManager 实例
-        strategies: 策略配置列表（从 config.yaml 读取）
+        strategies: 策略配置列表（从 config.yaml 读取，当前未使用）
     """
-    print("\n选股结果汇总:")
+    print("\n最终板块持股统计:")
     print("=" * 70)
-
-    # 从策略配置中提取源板块和目标板块
-    strategy_blocks = []
-    for strategy in strategies:
-        strategy_type = strategy.get('type', 'single')
-        
-        if strategy_type in ('single', 'multi'):
-            source = strategy.get('source_block')
-            target = strategy.get('target_block')
-            target_name = strategy.get('target_block_name', '')
-            if source and target:
-                strategy_blocks.append({
-                    'name': strategy.get('name', ''),
-                    'source': source,
-                    'targets': [(target, target_name)]
-                })
-        elif strategy_type == 'parallel':
-            source = strategy.get('source_block')
-            targets = []
-            for formula in strategy.get('formulas', []):
-                target = formula.get('target_block')
-                target_name = formula.get('target_block_name', '')
-                if target:
-                    targets.append((target, target_name))
-            if source and targets:
-                strategy_blocks.append({
-                    'name': strategy.get('name', ''),
-                    'source': source,
-                    'targets': targets
-                })
-
-    # 打印每个策略的结果
-    print()
-    for strategy in strategy_blocks:
-        name = strategy["name"]
-        source = strategy["source"]
-        targets = strategy["targets"]
-
-        print(f"策略：{name}")
-
-        # 查询源板块
-        source_count = block_manager.get_block_count(source)
-        print(f"  源板块：{source} ({source_count} 支)")
-
-        # 查询目标板块
-        for block_code, block_name in targets:
-            count = block_manager.get_block_count(block_code)
-            print(f"  → {block_code} ({block_name}): {count} 支")
-
-        print()
-
-    # 打印最终板块统计
-    print("=" * 70)
-    print("最终板块持股统计:")
-    print("-" * 70)
     print(f"{'板块':<10} {'板块名称':<20} {'数量':>8}")
     print("-" * 70)
 
@@ -328,7 +280,7 @@ def main():
 
             # 检查结果
             if result is None:
-                print(f"  [FAIL] 执行失败")
+                print("  [FAIL] 执行失败")
                 print()
                 print("=" * 50)
                 print(f"[错误] 步骤 {i}/{total} 执行失败，选股流程终止")
@@ -339,33 +291,43 @@ def main():
             success_count += 1
 
             # 显示执行结果数量
-            if result.get('type') == 'parallel':
+            result_type = result.get('type')
+            if result_type == 'parallel':
                 target_counts = ", ".join([
                     f"{r['target_block']}: {r['count']} 支"
                     for r in result.get('results', [])
                 ])
-                print(f"  [OK] 执行成功 ({target_counts})")
-            elif result.get('type') == 'single':
-                print(f"  [OK] 执行成功 ({result['target_block']}: {result['selected_count']} 支)")
-            elif result.get('type') == 'multi':
-                print(f"  [OK] 执行成功 ({result['target_block']}: {result['selected_count']} 支)")
-            elif result.get('type') == 'db_update':
-                update_info = ", ".join([
-                    f"{u['block_code']}: {u.get('added', 0)} 新增"
-                    for u in result.get('updates', []) if 'error' not in u
-                ])
-                print(f"  [OK] 执行成功 ({update_info})")
+                print("  [OK] 执行成功 (" + target_counts + ")")
+            elif result_type == 'single':
+                print("  [OK] 执行成功 (" + result['target_block'] + ": " + str(result['selected_count']) + " 支)")
+            elif result_type == 'multi':
+                print("  [OK] 执行成功 (" + result['target_block'] + ": " + str(result['selected_count']) + " 支)")
+            elif result_type == 'db_update':
+                updates_list = result.get('updates', [])
+                if updates_list:
+                    info_parts = []
+                    for u in updates_list:
+                        code = u.get('block_code', 'N/A')
+                        target = u.get('target_block', 'N/A')
+                        action = u.get('delta_action', 'unknown')
+                        added = u.get('added', 0)
+                        info_parts.append(code + "->" + target + ": " + action + "(" + str(added) + ")")
+                    update_info = ", ".join(info_parts)
+                else:
+                    update_info = "无更新数据"
+                print("  [OK] 执行成功 (" + update_info + ")")
             else:
-                print(f"  [OK] 执行成功")
+                # 未知类型也显示结果
+                print("  [OK] 执行成功 (result=" + str(result) + ")")
 
-        # 打印汇总（直接查询板块数据，在 TQ 关闭前）
+        # 打印最终板块持股统计
         if results:
             print_summary(block_manager, selected_programs)
 
         print_footer(success_count, total)
 
         # 返回退出码
-        sys.exit(0 if success_count == total else 1)
+        sys.exit(0)
 
     finally:
         # 关闭 TQ

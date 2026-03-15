@@ -8,20 +8,11 @@
     ".NETCoreApp,Version=v10.0": {
       "web/1.0.0": {
         "dependencies": {
-          "Dapper": "2.1.72",
           "Microsoft.EntityFrameworkCore.Design": "10.0.3",
           "Microsoft.EntityFrameworkCore.Sqlite": "10.0.3"
         },
         "runtime": {
           "web.dll": {}
-        }
-      },
-      "Dapper/2.1.72": {
-        "runtime": {
-          "lib/net10.0/Dapper.dll": {
-            "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.1.72.10375"
-          }
         }
       },
       "Humanizer.Core/2.14.1": {
@@ -654,13 +645,6 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
-    },
-    "Dapper/2.1.72": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-ns4mGqQd9a/MhP8m6w556vVlZIa0/MfUu03zrxjZC/jlr1uVCsUac8bkdB+Fs98Llbd56rRSo1eZH5VVmeGZyw==",
-      "path": "dapper/2.1.72",
-      "hashPath": "dapper.2.1.72.nupkg.sha512"
     },
     "Humanizer.Core/2.14.1": {
       "type": "package",

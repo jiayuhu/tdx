@@ -2,19 +2,6 @@
   "version": 3,
   "targets": {
     "net10.0": {
-      "Dapper/2.1.72": {
-        "type": "package",
-        "compile": {
-          "lib/net10.0/Dapper.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net10.0/Dapper.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -823,27 +810,6 @@
     }
   },
   "libraries": {
-    "Dapper/2.1.72": {
-      "sha512": "ns4mGqQd9a/MhP8m6w556vVlZIa0/MfUu03zrxjZC/jlr1uVCsUac8bkdB+Fs98Llbd56rRSo1eZH5VVmeGZyw==",
-      "type": "package",
-      "path": "dapper/2.1.72",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Dapper.png",
-        "dapper.2.1.72.nupkg.sha512",
-        "dapper.nuspec",
-        "lib/net10.0/Dapper.dll",
-        "lib/net10.0/Dapper.xml",
-        "lib/net461/Dapper.dll",
-        "lib/net461/Dapper.xml",
-        "lib/net8.0/Dapper.dll",
-        "lib/net8.0/Dapper.xml",
-        "lib/netstandard2.0/Dapper.dll",
-        "lib/netstandard2.0/Dapper.xml",
-        "readme.md"
-      ]
-    },
     "Humanizer.Core/2.14.1": {
       "sha512": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "type": "package",
@@ -2456,7 +2422,6 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
-      "Dapper >= 2.1.72",
       "Microsoft.Data.Sqlite >= 10.0.3",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.3",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.3"
@@ -2469,11 +2434,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\dev\\tdx\\web\\web.csproj",
+      "projectUniqueName": "d:\\dev\\tdx\\web\\web.csproj",
       "projectName": "web",
-      "projectPath": "D:\\dev\\tdx\\web\\web.csproj",
+      "projectPath": "d:\\dev\\tdx\\web\\web.csproj",
       "packagesPath": "C:\\Users\\jiayuhu\\.nuget\\packages\\",
-      "outputPath": "D:\\dev\\tdx\\web\\obj\\",
+      "outputPath": "d:\\dev\\tdx\\web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -2510,10 +2475,6 @@
       "net10.0": {
         "targetAlias": "net10.0",
         "dependencies": {
-          "Dapper": {
-            "target": "Package",
-            "version": "[2.1.72, )"
-          },
           "Microsoft.Data.Sqlite": {
             "target": "Package",
             "version": "[10.0.3, )"
@@ -2548,7 +2509,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.104/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

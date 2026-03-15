@@ -1,47 +1,38 @@
 using Microsoft.EntityFrameworkCore;
 using web.Data;
 using web.Services;
-using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 添加日志 - 保留 Console 输出
+// 日志配置
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.SetMinimumLevel(
+    builder.Environment.IsDevelopment() ? LogLevel.Debug : LogLevel.Information);
 
-// 打印配置信息
-Console.WriteLine("=== 启动配置 ===");
-Console.WriteLine($"工作目录：{Environment.CurrentDirectory}");
-Console.WriteLine($"配置文件路径：{builder.Environment.ContentRootPath}");
-
-// 从配置文件读取数据库连接
+// 数据库连接
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 如果配置文件没有连接字符串，使用相对路径构建
 if (string.IsNullOrEmpty(connStr))
 {
     var dbPath = Path.Combine(builder.Environment.ContentRootPath, "..", "data", "quant.db");
     connStr = $"Data Source={dbPath}";
-    Console.WriteLine($"使用相对路径构建连接字符串：{connStr}");
 }
-else
-{
-    Console.WriteLine($"连接字符串：{connStr}");
-}
-Console.WriteLine("================");
 
 // 添加服务
 builder.Services.AddRazorPages();
 
-// 配置 EF Core
 builder.Services.AddDbContextFactory<TdxDbContext>(options =>
     options.UseSqlite(connStr));
 
-// 注册数据服务
 builder.Services.AddSingleton<StockService>();
 
 var app = builder.Build();
+
+// 启动日志（使用 ILogger）
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("工作目录：{Dir}", Environment.CurrentDirectory);
+logger.LogInformation("连接字符串：{ConnStr}", connStr);
 
 // 配置 HTTP 管道
 if (!app.Environment.IsDevelopment())
