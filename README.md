@@ -78,34 +78,7 @@ flowchart LR
     D <--> I
 ```
 
-### 选股策略流程
-
-```
-AAA (1054 支)
- |
- +- [1] below240w        : AAA -> X01 (低于五年周线)
- |
- +- [2] small_goodfund   : X01 -> X02 (微盘股基本面选股)
- |    +- X02_LTSZ100Y    : 流通市值 < 100 亿
- |    +- X03_MG_GOOD     : 净利润基本面良好
- |    +- X04_MG_GR_Q4    : 净利润同比增长且已出四季报/年报
- |    +- X05_GX_BT0      : 潜在股息 > 0
- |
- +- [3] buy_kdj_small    : X02 -> B00/B01/B02 (KDJ 买入信号)
- |    +- B00_KDJ5W       : KDJ 五周线
- |    +- B01_KDJ_DJC     : KDJ 低金叉
- |    +- B02_KDJ_GJC     : KDJ 高金叉
- |
- +- [4] buy_kdj_aaa      : AAA -> BA1/BA2 (AAA 板块 KDJ)
- |    +- B01_KDJ_DJC     : KDJ 低金叉
- |    +- B02_KDJ_GJC     : KDJ 高金叉
- |
- +- [5] db_update        : 数据库更新 (记录每日增量)
-      +- B01 -> B01_delta
-      +- B02 -> B02_delta
-      +- BA1 -> BA1_delta
-      +- BA2 -> BA2_delta
-```
+选股策略说明已拆分到：[`data/xg.md`](data/xg.md)
 
 ## 项目结构
 
@@ -192,47 +165,7 @@ uv run python dbclear.py
 
 ## 选股策略
 
-### 1. below240w - 低于五年周线
-
-- 收盘价低于 240 周均线，前复权，自动过滤 ST
-- AAA -> X01，公式 X01_BELOW240W，周线
-
-### 2. small_goodfund - 微盘股基本面选股
-
-4 步串行筛选（X01 -> X02）：
-1. X02_LTSZ100Y: 流通市值 < 100 亿
-2. X03_MG_GOOD: 净利润基本面良好
-3. X04_MG_GR_Q4: 净利润同比增长且已出四季报/年报
-4. X05_GX_BT0: 潜在股息 > 0
-
-### 3. buy_kdj_small - KDJ 买入信号（微盘股）
-
-X02 -> B00/B01/B02，3 个公式并行输出：
-- B00_KDJ5W: KDJ 五周线（周线）
-- B01_KDJ_DJC: KDJ 低金叉（日线）
-- B02_KDJ_GJC: KDJ 高金叉（日线）
-
-### 4. buy_kdj_aaa - KDJ 买入信号（AAA 板块）
-
-AAA -> BA1/BA2，2 个公式并行输出：
-- B01_KDJ_DJC: KDJ 低金叉（日线）
-- B02_KDJ_GJC: KDJ 高金叉（日线）
-
-### 5. db_update - 数据库更新
-
-- 保存当日板块数据，计算增量（新增/减少）
-- 记录买点 EMA(C,2) 和入选日期
-- 长线板块：B01, B02；短线板块：BA1, BA2
-- 数据保留：10 天
-
-## 策略类型说明
-
-| 类型 | 说明 | 配置项 |
-|------|------|--------|
-| `single` | 单公式选股 | `source_block`, `target_block`, `formula_name`, `stock_period` |
-| `multi` | 多公式串行选股 | `source_block`, `target_block`, `formulas` (公式列表) |
-| `parallel` | 多公式并行选股 | `source_block`, `formulas` (每项含 `formula_name`, `target_block`, `stock_period`) |
-| `db_update` | 数据库更新 | `long_term_blocks`, `short_term_blocks`, `keep_days` |
+详见：[`data/xg.md`](data/xg.md)
 
 ## 技术栈
 
