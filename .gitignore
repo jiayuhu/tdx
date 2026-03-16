@@ -12,7 +12,12 @@ nul
 
 # Virtual environments
 .venv
+env/
+venv/
 data/
 web/bin/
 web/obj/
 .vs/
+
+# Python dependencies
+requirements.txt

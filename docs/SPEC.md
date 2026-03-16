@@ -12,7 +12,7 @@
    - 调用通达信 TdxQuant API 执行选股策略
    - 管理通达信自定义板块
    - 将选股结果写入 SQLite 数据库
-   - 技术栈：Python 3.14 + uv + SQLite
+   - 技术栈：Python 3.14 + SQLite
 
 2. **ASP.NET Core Web 展示程序**（`web/` 目录）
    - 读取共享数据库展示每日选股结果
@@ -324,7 +324,7 @@ def execute_with_retry(func, max_retries=3, delay=1.0):
 ### 9.2 部署流程
 
 1. 代码拉取/打包
-2. 依赖安装 (`uv sync`)
+2. 依赖安装 (`pip install -r requirements.txt`)
 3. 配置文件检查
 4. 数据库初始化
 5. 服务启动

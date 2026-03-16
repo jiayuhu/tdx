@@ -94,7 +94,8 @@ tdx/
 |-- logging_config.py        # 日志配置模块
 |-- dbview.py                # 数据库查看工具（CLI）
 |-- dbclear.py               # 数据库清理工具（CLI）
-|-- pyproject.toml           # Python 项目配置
+|-- requirements.txt         # Python 依赖
+|-- pyproject.toml           # Python 项目配置（可选）
 |-- data/                    # 运行时自动创建（已被 .gitignore 忽略）
 |   +-- quant.db             # SQLite 数据库（首次运行自动创建）
 |-- web/                     # ASP.NET Core Web 展示程序
@@ -121,19 +122,19 @@ tdx/
 
 ```bash
 # 执行全部选股策略
-uv run python xg.py
+python xg.py
 
 # 执行单个策略
-uv run python xg.py --strategy below240w
+python xg.py --strategy below240w
 
 # 执行多个策略
-uv run python xg.py --strategy below240w small_goodfund
+python xg.py --strategy below240w small_goodfund
 
 # 查看策略列表
-uv run python xg.py --list
+python xg.py --list
 
 # 查看策略详情
-uv run python xg.py --info below240w
+python xg.py --info below240w
 ```
 
 ### 2. Web 展示程序
@@ -151,16 +152,16 @@ dotnet run --urls "http://localhost:5000"
 
 ```bash
 # 板块管理
-uv run python blocks.py list
-uv run python blocks.py info X01
+python blocks.py list
+python blocks.py info X01
 
 # 数据库查看
-uv run python dbview.py --tables
-uv run python dbview.py --schema b01
-uv run python dbview.py --data b01 -n 20
+python dbview.py --tables
+python dbview.py --schema b01
+python dbview.py --data b01 -n 20
 
 # 清空数据库
-uv run python dbclear.py
+python dbclear.py
 ```
 
 ## 选股策略
@@ -174,15 +175,22 @@ uv run python dbclear.py
 | 选股引擎 | Python 3.14 + TdxQuant API | 调用通达信公式执行选股 |
 | 数据存储 | SQLite | 共享数据库 `data/quant.db` |
 | Web 展示 | ASP.NET Core 10 + Razor Pages | EF Core 读取展示 |
-| 依赖管理 | uv (Python) / NuGet (.NET) | 各自独立管理 |
+| 依赖管理 | Python / NuGet (.NET) | 各自独立管理 |
 | 日期处理 | UTC 存储 + 北京时间 (UTC+8) 显示 | 统一日期规范 |
 
 ## 环境要求
 
 - **操作系统**: Windows 10/11（通达信仅支持 Windows）
-- **Python**: 3.14+，使用 [uv](https://github.com/astral-sh/uv) 管理依赖
+- **Python**: 3.14+
 - **.NET**: 10.0 SDK（Web 展示程序）
 - **通达信客户端**: 已安装并登录
+
+## 依赖安装
+
+```bash
+# 安装 Python 依赖
+pip install -r requirements.txt
+```
 
 ## 前置条件
 
