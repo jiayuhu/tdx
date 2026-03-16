@@ -15,9 +15,15 @@ nul
 env/
 venv/
 data/
-web/bin/
-web/obj/
 .vs/
+
+# .NET build artifacts
+**/[Bb]in/
+**/[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # Python dependencies
 requirements.txt
